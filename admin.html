@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Teacher Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    }
+    
+    .card {
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card:hover {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      transform: translateY(-2px);
+    }
+    
+    .submit-btn {
+      background: linear-gradient(to right, #4f46e5, #3b82f6);
+      transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+      background: linear-gradient(to right, #4338ca, #2563eb);
+      transform: translateY(-1px);
+    }
+    
+    .result-table th {
+      background-color: #f3f4f6;
+    }
+    
+    .result-table tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    
+    .result-table tr:hover {
+      background-color: #f3f4f6;
+    }
+    
+    .sidebar {
+      transition: all 0.3s ease;
+    }
+    
+    .sidebar-link:hover {
+      background-color: rgba(79, 70, 229, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Login Section -->
+  <div id="loginSection" class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md mx-auto card bg-white p-8 rounded-xl shadow-lg text-center">
+      <div class="text-3xl text-indigo-600 mb-2">
+        <i class="fas fa-lock"></i>
+      </div>
+      <h2 class="text-2xl font-bold mb-2">TEACHER LOGIN</h2>
+      <p class="mb-6 text-gray-600 text-sm">
+        Enter your credentials to access the admin panel
+      </p>
+      
+      <div class="mb-4">
+        <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+            <i class="fas fa-user"></i>
+          </span>
+          <input 
+            id="username" 
+            type="text" 
+            class="w-full border border-gray-300 p-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+            placeholder="Enter username" 
+          />
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+            <i class="fas fa-key"></i>
+          </span>
+          <input 
+            id="password" 
+            type="password" 
+            class="w-full border border-gray-300 p-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+            placeholder="Enter password" 
+          />
+        </div>
+      </div>
+      
+      <button 
+        id="loginBtn"
+        onclick="login()" 
+        class="w-full submit-btn text-white font-bold py-3 px-4 rounded-lg shadow-md"
+      >
+        <i class="fas fa-sign-in-alt mr-2"></i> Login
+      </button>
+      
+      <p id="loginError" class="text-red-600 font-medium mt-4 text-sm"></p>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard (Hidden Initially) -->
+  <div id="dashboard" class="hidden">
+    <!-- Sidebar -->
+    <div class="sidebar fixed inset-y-0 left-0 bg-white w-64 shadow-lg">
+      <div class="p-4 border-b border-gray-200">
+        <h1 class="text-xl font-bold text-indigo-700">Admin Panel</h1>
+        <p class="text-sm text-gray-500">Teacher Dashboard</p>
+      </div>
+      <nav class="mt-4">
+        <a href="#" class="sidebar-link block py-2 px-4 text-gray-700 hover:text-indigo-600" onclick="showSection('searchSection')">
+          <i class="fas fa-search mr-2"></i> Search Students
+        </a>
+        <a href="#" class="sidebar-link block py-2 px-4 text-gray-700 hover:text-indigo-600" onclick="showSection('addStudentSection')">
+          <i class="fas fa-user-plus mr-2"></i> Add New Student
+        </a>
+        <a href="#" class="sidebar-link block py-2 px-4 text-gray-700 hover:text-indigo-600" onclick="showSection('manageTeachersSection')">
+          <i class="fas fa-users-cog mr-2"></i> Manage Teachers
+        </a>
+        <a href="#" class="sidebar-link block py-2 px-4 text-gray-700 hover:text-indigo-600" onclick="logout()">
+          <i class="fas fa-sign-out-alt mr-2"></i> Logout
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 p-8">
+      <!-- Search Section -->
+      <div id="searchSection" class="section">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Student Search</h2>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">Class</label>
+              <select id="adminSheetSelect" class="w-full border border-gray-300 p-2 rounded-lg">
+                <option value="">Select Class</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">Roll Number</label>
+              <input id="adminRollInput" type="text" class="w-full border border-gray-300 p-2 rounded-lg" placeholder="Roll Number">
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">Student Name</label>
+              <input id="adminNameInput" type="text" class="w-full border border-gray-300 p-2 rounded-lg" placeholder="Student Name">
+            </div>
+          </div>
+          <button onclick="searchStudents()" class="submit-btn text-white font-bold py-2 px-4 rounded-lg">
+            <i class="fas fa-search mr-2"></i> Search
+          </button>
+        </div>
+        
+        <div id="searchResults" class="bg-white rounded-lg shadow-md p-6 hidden">
+          <h3 class="text-lg font-bold mb-4">Search Results</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full result-table">
+              <thead>
+                <tr>
+                  <th class="p-3 text-left">Roll No</th>
+                  <th class="p-3 text-left">Name</th>
+                  <th class="p-3 text-left">Class</th>
+                  <th class="p-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody">
+                <!-- Results will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Edit Form (Hidden Initially) -->
+      <div id="editStudentSection" class="section hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Edit Student</h2>
+          <button onclick="showSection('searchSection')" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Search
+          </button>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div id="editFormContainer">
+            <!-- Edit form will be loaded here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Student Section -->
+      <div id="addStudentSection" class="section hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Add New Student</h2>
+          <button onclick="showSection('searchSection')" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Search
+          </button>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <form id="addStudentForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Class</label>
+                <select id="newStudentClass" name="sheetName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                  <option value="">Select Class</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Roll Number</label>
+                <input type="text" name="rollNo" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Student Name</label>
+                <input type="text" name="studentName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Father's Name</label>
+                <input type="text" name="fatherName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Mother's Name</label>
+                <input type="text" name="motherName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Registration No</label>
+                <input type="text" name="registrationNo" class="w-full border border-gray-300 p-2 rounded-lg">
+              </div>
+            </div>
+            
+            <h3 class="text-lg font-bold mb-2 mt-6">Marks Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <!-- English -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">English</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="englishTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="englishPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="englishOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+              
+              <!-- Hindi -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">Hindi</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="hindiTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="hindiPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="hindiOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+              
+              <!-- IT -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">IT</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="itTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="itPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="itOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+              
+              <!-- Math -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">Math</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="mathTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="mathPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="mathOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <!-- Science -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">Science</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="sciTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="sciPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="sciOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+              
+              <!-- SST -->
+              <div class="border p-3 rounded-lg">
+                <h4 class="font-bold mb-2">Social Science</h4>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                  <input type="number" name="sstTheory" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                  <input type="number" name="sstPractical" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+                <div class="mb-2">
+                  <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                  <input type="number" name="sstOther" class="w-full border border-gray-300 p-1 rounded">
+                </div>
+              </div>
+            </div>
+            
+            <button type="submit" class="submit-btn text-white font-bold py-2 px-4 rounded-lg">
+              <i class="fas fa-save mr-2"></i> Save Student
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Manage Teachers Section -->
+      <div id="manageTeachersSection" class="section hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Manage Teachers</h2>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Teacher Accounts</h3>
+            <button onclick="showAddTeacherForm()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-plus mr-2"></i> Add Teacher
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full result-table">
+              <thead>
+                <tr>
+                  <th class="p-3 text-left">Username</th>
+                  <th class="p-3 text-left">Full Name</th>
+                  <th class="p-3 text-left">Email</th>
+                  <th class="p-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="teachersTableBody">
+                <!-- Teachers will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Add Teacher Form (Hidden Initially) -->
+        <div id="addTeacherForm" class="bg-white rounded-lg shadow-md p-6 hidden">
+          <h3 class="text-lg font-bold mb-4">Add New Teacher</h3>
+          <form id="newTeacherForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                <input type="text" name="username" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                <input type="password" name="password" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                <input type="text" name="fullName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                <input type="email" name="email" class="w-full border border-gray-300 p-2 rounded-lg">
+              </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+              <button type="button" onclick="hideAddTeacherForm()" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+                Cancel
+              </button>
+              <button type="submit" class="submit-btn text-white font-bold py-2 px-4 rounded-lg">
+                <i class="fas fa-save mr-2"></i> Save Teacher
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdcl4TcDdzspl0pKTWZTW2-EzimFAcfvBKQBbQU8n1cd02YKeBzg68f4mZbOxIOLsGwA/exec";
+    let currentTeacher = null;
+    let allClasses = [];
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load available classes
+      fetchAvailableClasses();
+      
+      // Form submission handlers
+      document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addNewStudent();
+      });
+      
+      document.getElementById('newTeacherForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        addNewTeacher();
+      });
+      
+      // Set default section
+      showSection('searchSection');
+    });
+
+    // Fetch available classes from server
+    function fetchAvailableClasses() {
+      fetch(`${SCRIPT_URL}?action=getAvailableSheets`)
+        .then(response => response.json())
+        .then(sheets => {
+          allClasses = sheets;
+          const sheetSelect = document.getElementById('adminSheetSelect');
+          const newStudentClass = document.getElementById('newStudentClass');
+          
+          // Clear existing options
+          sheetSelect.innerHTML = '<option value="">Select Class</option>';
+          newStudentClass.innerHTML = '<option value="">Select Class</option>';
+          
+          // Add new options
+          sheets.forEach(sheet => {
+            const option = document.createElement('option');
+            option.value = sheet;
+            option.text = sheet;
+            sheetSelect.appendChild(option.cloneNode(true));
+            newStudentClass.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching classes:', error);
+        });
+    }
+
+    // Teacher login function
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('loginError');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      errorMsg.textContent = '';
+      
+      if (!username || !password) {
+        errorMsg.textContent = 'Please enter both username and password';
+        return;
+      }
+      
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging in...';
+      loginBtn.disabled = true;
+      
+      const params = new URLSearchParams();
+      params.append('action', 'teacherLogin');
+      params.append('username', username);
+      params.append('password', password);
+      
+      fetch(`${SCRIPT_URL}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            currentTeacher = data.teacher;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadTeachersList();
+          } else {
+            errorMsg.textContent = data.message || 'Login failed';
+          }
+        })
+        .catch(error => {
+          errorMsg.textContent = 'Error connecting to server';
+          console.error('Login error:', error);
+        })
+        .finally(() => {
+          loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Login';
+          loginBtn.disabled = false;
+        });
+    }
+
+    // Logout function
+    function logout() {
+      currentTeacher = null;
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    // Show specific section
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Search students
+    function searchStudents() {
+      const sheetName = document.getElementById('adminSheetSelect').value;
+      const rollNo = document.getElementById('adminRollInput').value.trim();
+      const studentName = document.getElementById('adminNameInput').value.trim();
+      
+      const params = new URLSearchParams();
+      params.append('action', 'searchStudents');
+      
+      if (sheetName) params.append('sheetName', sheetName);
+      if (rollNo) params.append('rollNo', rollNo);
+      if (studentName) params.append('studentName', studentName);
+      
+      fetch(`${SCRIPT_URL}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+          const resultsTable = document.getElementById('resultsTableBody');
+          resultsTable.innerHTML = '';
+          
+          if (data.length === 0) {
+            resultsTable.innerHTML = '<tr><td colspan="4" class="p-3 text-center">No students found</td></tr>';
+          } else {
+            data.forEach(student => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td class="p-3">${student.rollNo}</td>
+                <td class="p-3">${student.studentName}</td>
+                <td class="p-3">${student.sheetName}</td>
+                <td class="p-3">
+                  <button onclick="editStudent('${student.sheetName}', '${student.rollNo}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded mr-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button onclick="deleteStudent('${student.sheetName}', '${student.rollNo}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              `;
+              resultsTable.appendChild(row);
+            });
+          }
+          
+          document.getElementById('searchResults').classList.remove('hidden');
+        })
+        .catch(error => {
+          console.error('Search error:', error);
+          alert('Error searching students');
+        });
+    }
+
+    // Edit student
+    function editStudent(sheetName, rollNo) {
+      const params = new URLSearchParams();
+      params.append('action', 'getStudentForEdit');
+      params.append('sheetName', sheetName);
+      params.append('rollNo', rollNo);
+      
+      fetch(`${SCRIPT_URL}?${params.toString()}`)
+        .then(response => response.json())
+        .then(student => {
+          const formContainer = document.getElementById('editFormContainer');
+          
+          // Create edit form HTML
+          formContainer.innerHTML = `
+            <form id="editStudentForm" onsubmit="saveStudentChanges(event)">
+              <input type="hidden" name="originalSheetName" value="${sheetName}">
+              <input type="hidden" name="originalRollNo" value="${rollNo}">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Class</label>
+                  <select name="sheetName" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                    ${allClasses.map(cls => 
+                      `<option value="${cls}" ${cls === sheetName ? 'selected' : ''}>${cls}</option>`
+                    ).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Roll Number</label>
+                  <input type="text" name="rollNo" value="${student.rollNo}" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                </div>
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Student Name</label>
+                  <input type="text" name="studentName" value="${student.studentName}" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                </div>
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Father's Name</label>
+                  <input type="text" name="fatherName" value="${student.fatherName}" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                </div>
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Mother's Name</label>
+                  <input type="text" name="motherName" value="${student.motherName}" class="w-full border border-gray-300 p-2 rounded-lg" required>
+                </div>
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">Registration No</label>
+                  <input type="text" name="registrationNo" value="${student.registrationNo}" class="w-full border border-gray-300 p-2 rounded-lg">
+                </div>
+              </div>
+              
+              <h3 class="text-lg font-bold mb-2 mt-6">Marks Information</h3>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <!-- English -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">English</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="englishTheory" value="${student.englishTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="englishPractical" value="${student.englishPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="englishOther" value="${student.englishOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+                
+                <!-- Hindi -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">Hindi</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="hindiTheory" value="${student.hindiTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="hindiPractical" value="${student.hindiPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="hindiOther" value="${student.hindiOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+                
+                <!-- IT -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">IT</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="itTheory" value="${student.itTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="itPractical" value="${student.itPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="itOther" value="${student.itOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+                
+                <!-- Math -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">Math</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="mathTheory" value="${student.mathTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="mathPractical" value="${student.mathPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="mathOther" value="${student.mathOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Science -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">Science</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="sciTheory" value="${student.sciTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="sciPractical" value="${student.sciPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="sciOther" value="${student.sciOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+                
+                <!-- SST -->
+                <div class="border p-3 rounded-lg">
+                  <h4 class="font-bold mb-2">Social Science</h4>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Theory</label>
+                    <input type="number" name="sstTheory" value="${student.sstTheory}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Practical</label>
+                    <input type="number" name="sstPractical" value="${student.sstPractical}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                  <div class="mb-2">
+                    <label class="block text-gray-700 text-xs font-bold mb-1">Other</label>
+                    <input type="number" name="sstOther" value="${student.sstOther}" class="w-full border border-gray-300 p-1 rounded">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex justify-end space-x-3">
+                <button type="button" onclick="showSection('searchSection')" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg">
+                  Cancel
+                </button>
+                <button type="submit" class="submit-btn text-white font-bold py-2 px-4 rounded-lg">
+                  <i class="fas fa-save mr-2"></i> Save Changes
+                </button>
+              </div>
+            </form>
+          `;
+          
+          showSection('editStudentSection');
+        })
+        .catch(error => {
+          console.error('Error fetching student:', error);
+          alert('Error loading student data');
+        });
+    }
+
+    // Save student changes
+    function saveStudentChanges(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      fetch(`${SCRIPT_URL}?action=updateStudent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            alert('Student updated successfully');
+            showSection('searchSection');
+            searchStudents();
+          } else {
+            alert('Error: ' + (result.message || 'Failed to update student'));
+          }
+        })
+        .catch(error => {
+          console.error('Update error:', error);
+          alert('Error updating student');
+        });
+    }
+
+    // Delete student
+    function deleteStudent(sheetName, rollNo) {
+      if (!confirm(`Are you sure you want to delete student ${rollNo} from ${sheetName}?`)) {
+        return;
+      }
+      
+      const params = new URLSearchParams();
+      params.append('action', 'deleteStudent');
+      params.append('sheetName', sheetName);
+      params.append('rollNo', rollNo);
+      
+      fetch(`${SCRIPT_URL}?${params.toString()}`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            alert('Student deleted successfully');
+            searchStudents();
+          } else {
+            alert('Error: ' + (result.message || 'Failed to delete student'));
+          }
+        })
+        .catch(error => {
+          console.error('Delete error:', error);
+          alert('Error deleting student');
+        });
+    }
+
+    // Add new student
+    function addNewStudent() {
+      const form = document.getElementById('addStudentForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      fetch(`${SCRIPT_URL}?action=addStudent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            alert('Student added successfully');
+            form.reset();
+            showSection('searchSection');
+            searchStudents();
+          } else {
+            alert('Error: ' + (result.message || 'Failed to add student'));
+          }
+        })
+        .catch(error => {
+          console.error('Add error:', error);
+          alert('Error adding student');
+        });
+    }
+
+    // Load teachers list
+    function loadTeachersList() {
+      fetch(`${SCRIPT_URL}?action=getTeachers`)
+        .then(response => response.json())
+        .then(teachers => {
+          const tableBody = document.getElementById('teachersTableBody');
+          tableBody.innerHTML = '';
+          
+          if (teachers.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center">No teachers found</td></tr>';
+          } else {
+            teachers.forEach(teacher => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td class="p-3">${teacher.username}</td>
+                <td class="p-3">${teacher.fullName}</td>
+                <td class="p-3">${teacher.email || '-'}</td>
+                <td class="p-3">
+                  ${currentTeacher.username !== teacher.username ? `
+                    <button onclick="deleteTeacher('${teacher.username}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  ` : ''}
+                </td>
+              `;
+              tableBody.appendChild(row);
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error loading teachers:', error);
+        });
+    }
+
+    // Show add teacher form
+    function showAddTeacherForm() {
+      document.getElementById('addTeacherForm').classList.remove('hidden');
+    }
+
+    // Hide add teacher form
+    function hideAddTeacherForm() {
+      document.getElementById('addTeacherForm').classList.add('hidden');
+      document.getElementById('newTeacherForm').reset();
+    }
+
+    // Add new teacher
+    function addNewTeacher() {
+      const form = document.getElementById('newTeacherForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      fetch(`${SCRIPT_URL}?action=addTeacher`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            alert('Teacher added successfully');
+            form.reset();
+            hideAddTeacherForm();
+            loadTeachersList();
+          } else {
+            alert('Error: ' + (result.message || 'Failed to add teacher'));
+          }
+        })
+        .catch(error => {
+          console.error('Add teacher error:', error);
+          alert('Error adding teacher');
+        });
+    }
+
+    // Delete teacher
+    function deleteTeacher(username) {
+      if (!confirm(`Are you sure you want to delete teacher ${username}?`)) {
+        return;
+      }
+      
+      const params = new URLSearchParams();
+      params.append('action', 'deleteTeacher');
+      params.append('username', username);
+      
+      fetch(`${SCRIPT_URL}?${params.toString()}`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            alert('Teacher deleted successfully');
+            loadTeachersList();
+          } else {
+            alert('Error: ' + (result.message || 'Failed to delete teacher'));
+          }
+        })
+        .catch(error => {
+          console.error('Delete teacher error:', error);
+          alert('Error deleting teacher');
+        });
+    }
+  </script>
+</body>
+</html>
