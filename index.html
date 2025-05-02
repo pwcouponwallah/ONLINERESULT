@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Exam Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+      
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      
+      .gradient-bg {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      }
+      
+      .card {
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      
+      .card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-2px);
+      }
+      
+      .captcha-box {
+        background: linear-gradient(45deg, #f9fafb 25%, #f3f4f6 25%, #f3f4f6 50%, #f9fafb 50%, #f9fafb 75%, #f3f4f6 75%, #f3f4f6);
+        background-size: 10px 10px;
+      }
+      
+      .submit-btn {
+        background: linear-gradient(to right, #4f46e5, #3b82f6);
+        transition: all 0.3s ease;
+      }
+      
+      .submit-btn:hover {
+        background: linear-gradient(to right, #4338ca, #2563eb);
+        transform: translateY(-1px);
+      }
+      
+      .result-header {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      }
+      
+      .result-table th {
+        background-color: #f3f4f6;
+      }
+      
+      .result-table tr:nth-child(even) {
+        background-color: #f9fafb;
+      }
+      
+      .result-table tr:hover {
+        background-color: #f3f4f6;
+      }
+      
+      /* Print styles to ensure everything fits on one page */
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 11px;
+        }
+        
+        .no-print {
+          display: none !important;
+        }
+        
+        #resultSection {
+          display: block !important;
+          margin: 0 !important;
+          padding: 0.5cm !important;
+          width: 100% !important;
+          max-width: none !important;
+        }
+        
+        table {
+          page-break-inside: avoid;
+          font-size: 10px;
+        }
+        
+        th, td {
+          padding: 2px !important;
+        }
+        
+        .print-small-text {
+          font-size: 10px !important;
+        }
+        
+        .print-compact {
+          margin: 0 !important;
+          padding: 2px !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start pt-8 pb-8">
+    <div class="w-full max-w-6xl">
+      <!-- Page Header -->
+      <div class="w-full text-center mb-8 no-print">
+        <h1 class="text-4xl font-bold text-indigo-700">Rameez Scripts Online Result</h1>
+        <p class="text-gray-600">EXAM RESULT PORTAL – 2025</p>
+        <div class="w-24 h-1 bg-indigo-500 mx-auto mt-3"></div>
+      </div>
+      
+      <!-- Search Section -->
+      <div id="searchSection" class="w-full max-w-md mx-auto card bg-white p-8 rounded-xl shadow-lg text-center no-print">
+        <div class="text-3xl text-indigo-600 mb-2">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">EXAM RESULTS</h2>
+        <p class="mb-6 text-gray-600 text-sm">
+          Select a class and enter your roll number to access your examination results
+        </p>
+        
+        <!-- SHEET DROPDOWN -->
+        <div class="mb-6">
+          <label for="sheetSelect" class="block text-gray-700 text-sm font-bold mb-2">Select Your Class</label>
+          <select 
+            id="sheetSelect" 
+            class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <!-- Options will be populated dynamically from server -->
+            <option value="">Loading classes...</option>
+          </select>
+        </div>
+
+        <!-- ROLL NUMBER -->
+        <div class="mb-6">
+          <label for="rollInput" class="block text-gray-700 text-sm font-bold mb-2">Roll Number</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+              <i class="fas fa-id-card"></i>
+            </span>
+            <input 
+              id="rollInput" 
+              type="text" 
+              class="w-full border border-gray-300 p-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+              placeholder="e.g. 101" 
+            />
+          </div>
+        </div>
+        
+        <!-- Captcha Section -->
+        <div class="mb-6 p-4 captcha-box rounded-lg border border-gray-200">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-medium text-gray-700">Security Verification</span>
+            <button onclick="generateCaptcha()" class="text-indigo-600 text-sm hover:text-indigo-800 transition">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+          <div class="mb-3">
+            <span 
+              id="captchaDisplay" 
+              class="inline-block text-2xl font-bold tracking-widest text-gray-800 bg-white py-2 px-6 rounded-lg border border-gray-300 shadow-sm"
+            ></span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+              <i class="fas fa-shield-alt"></i>
+            </span>
+            <input 
+              id="captchaInput" 
+              type="text" 
+              class="w-full border border-gray-300 p-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+              placeholder="Enter the code shown above" 
+            />
+          </div>
+        </div>
+        
+        <!-- SUBMIT BUTTON -->
+        <button 
+          id="submitBtn"
+          onclick="verifyAndFetch()" 
+          class="w-full submit-btn text-white font-bold py-3 px-4 rounded-lg shadow-md"
+        >
+          <i class="fas fa-search mr-2"></i> View Result
+        </button>
+        
+        <p id="errorMsg" class="text-red-600 font-medium mt-4 text-sm"></p>
+      </div>
+
+      <!-- Result Section (Initially Hidden) -->
+      <div id="resultSection" class="w-full max-w-4xl mx-auto mt-8 bg-white rounded-xl shadow-lg p-6 hidden">
+        <!-- Result Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center result-header rounded-t-xl p-4 print-compact">
+          <div class="flex items-center mb-4 md:mb-0">
+            <!-- School Logo -->
+            <div class="h-16 w-16 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xl">
+              <i class="fas fa-university"></i>
+            </div>
+            <div class="ml-3">
+              <h1 class="text-xl font-bold text-gray-800">Rameez Scripts Online Result</h1>
+              <p class="text-sm text-gray-600">(Mohammad Rameez Imdad)</p>
+            </div>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold bg-indigo-100 text-indigo-800 py-1 px-4 rounded-full">EXAM RESULT – 2025</h2>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-r from-indigo-500 to-blue-500 h-1 mb-4 print-compact"></div>
+        
+        <div class="text-center mb-3 print-compact">
+          <p id="rollError" class="text-red-600 font-bold"></p>
+        </div>
+        
+        <div class="border border-gray-200 overflow-hidden rounded-xl">
+          <!-- Student Details Section -->
+          <div class="bg-indigo-50 p-4 border-b border-gray-200">
+            <div class="text-center mb-3">
+              <h3 class="font-bold text-indigo-800">STUDENT INFORMATION</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 print-small-text">
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">Roll No:</span>
+                <span id="rollNoDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">Student's Name:</span>
+                <span id="studentNameDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">Mother's Name:</span>
+                <span id="motherNameDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">Father's Name:</span>
+                <span id="fatherNameDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">Registration No:</span>
+                <span id="regNoDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-gray-700 min-w-28">ID Card No:</span>
+                <span id="idCardDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+              <div class="flex items-center md:col-span-2">
+                <span class="font-bold text-gray-700 min-w-28">Aadhar Card No:</span>
+                <span id="aadharDisplay" class="ml-2 text-gray-800"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Marks Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse result-table">
+              <thead>
+                <tr class="bg-indigo-100">
+                  <th class="border border-gray-300 p-3 text-left text-indigo-800">Subject Name</th>
+                  <th class="border border-gray-300 p-3 text-center text-indigo-800">Theory</th>
+                  <th class="border border-gray-300 p-3 text-center text-indigo-800">Practical</th>
+                  <th class="border border-gray-300 p-3 text-center text-indigo-800">Other Activity</th>
+                  <th class="border border-gray-300 p-3 text-center text-indigo-800">Total</th>
+                  <th class="border border-gray-300 p-3 text-center text-indigo-800">Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- ENGLISH -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">ENGLISH</td>
+                  <td class="border border-gray-300 p-3 text-center" id="engTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="engPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="engOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="engTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="engRemarkDisplay"></td>
+                </tr>
+                <!-- HINDI -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">HINDI</td>
+                  <td class="border border-gray-300 p-3 text-center" id="hinTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="hinPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="hinOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="hinTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="hinRemarkDisplay"></td>
+                </tr>
+                <!-- INFORMATION TECHNOLOGY -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">INFORMATION TECHNOLOGY</td>
+                  <td class="border border-gray-300 p-3 text-center" id="itTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="itPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="itOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="itTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="itRemarkDisplay"></td>
+                </tr>
+                <!-- MATHEMATICS -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">MATHEMATICS</td>
+                  <td class="border border-gray-300 p-3 text-center" id="mathTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="mathPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="mathOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="mathTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="mathRemarkDisplay"></td>
+                </tr>
+                <!-- SCIENCE -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">SCIENCE</td>
+                  <td class="border border-gray-300 p-3 text-center" id="sciTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sciPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sciOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="sciTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sciRemarkDisplay"></td>
+                </tr>
+                <!-- SOCIAL SCIENCE -->
+                <tr>
+                  <td class="border border-gray-300 p-3 font-medium">SOCIAL SCIENCE</td>
+                  <td class="border border-gray-300 p-3 text-center" id="sstTheoryDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sstPracDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sstOtherDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center font-medium" id="sstTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center" id="sstRemarkDisplay"></td>
+                </tr>
+                <!-- REMAINING OTHER ACTIVITY MARKS -->
+                <tr class="bg-gray-50">
+                  <td class="border border-gray-300 p-3 font-medium">REMAINING OTHER ACTIVITY MARKS</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                </tr>
+                <!-- GRAND TOTAL -->
+                <tr class="bg-indigo-50">
+                  <td class="border border-gray-300 p-3 font-bold text-indigo-800">GRAND TOTAL</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                  <td class="border border-gray-300 p-3 text-center font-bold text-indigo-800" id="grandTotalDisplay"></td>
+                  <td class="border border-gray-300 p-3 text-center">-</td>
+                </tr>
+                <!-- RESULT -->
+                <tr class="bg-indigo-100">
+                  <td class="border border-gray-300 p-3 font-bold text-indigo-900">RESULT</td>
+                  <td class="border border-gray-300 p-3 text-center" colspan="4">-</td>
+                  <td class="border border-gray-300 p-3 text-center font-bold" id="resultDivisionDisplay"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Button Section -->
+        <div class="flex flex-col sm:flex-row justify-between mt-6 space-y-4 sm:space-y-0 no-print">
+          <button 
+            class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg transition duration-300 flex items-center justify-center" 
+            onclick="backToSearch()"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>Back to Search
+          </button>
+          <div class="flex space-x-3">
+            <button 
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center justify-center" 
+              onclick="window.print()"
+            >
+              <i class="fas fa-print mr-2"></i>Print Result
+            </button>
+          </div>
+        </div>
+        
+        <!-- Print-only footer -->
+        <div class="hidden print:block mt-6 text-center print-small-text">
+          <div class="w-full h-px bg-gray-300 mb-3"></div>
+          <p class="text-gray-600">This is a computer-generated result. No signature required.</p>
+          <p class="text-gray-600">Rameez Scripts Online Result © 2025 - All Rights Reserved</p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="w-full text-center mt-12 no-print">
+        <p class="text-sm text-gray-500">© 2025 Rameez Scripts Online Result. All Rights Reserved.</p>
+      </div>
+    </div>
+
+    <script>
+      // Google Apps Script Web App URL
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZP3R291808VqRmvgF9-zArW4cg4EoWtYjQNh_V6JhI6dtdBCpA9D3mRjp_RyPcPWINg/exec";
+      let currentCaptcha = '';
+
+      // Populate sheet dropdown as soon as DOM is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        generateCaptcha();
+        fetchAvailableSheets();
+
+        // Enable pressing Enter to submit
+        const rollInput = document.getElementById('rollInput');
+        const captchaInput = document.getElementById('captchaInput');
+        
+        rollInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') verifyAndFetch();
+        });
+        
+        captchaInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') verifyAndFetch();
+        });
+      });
+
+      // Fetch available sheets from Google Apps Script
+      function fetchAvailableSheets() {
+        fetch(`${SCRIPT_URL}?action=getAvailableSheets`)
+          .then(response => response.json())
+          .then(sheetNames => {
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.innerHTML = '';
+
+            if (Array.isArray(sheetNames) && sheetNames.length > 0) {
+              sheetNames.forEach(function(name) {
+                const option = document.createElement('option');
+                option.value = name;
+                option.text = name;
+                sheetSelect.appendChild(option);
+              });
+            } else {
+              // If no sheets returned or error
+              const option = document.createElement('option');
+              option.value = '';
+              option.text = 'No sheets found';
+              sheetSelect.appendChild(option);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching sheets:', error);
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.innerHTML = '<option value="">Error loading sheets</option>';
+          });
+      }
+
+      // Generate random 6-digit captcha
+      function generateCaptcha() {
+        currentCaptcha = Math.floor(100000 + Math.random() * 900000).toString();
+        document.getElementById('captchaDisplay').textContent = currentCaptcha;
+        document.getElementById('captchaInput').value = '';
+        document.getElementById('errorMsg').textContent = '';
+      }
+
+      // Verify user input and call the server
+      function verifyAndFetch() {
+        const sheetName = document.getElementById('sheetSelect').value;
+        const rollNumber = document.getElementById('rollInput').value.trim();
+        const captchaInput = document.getElementById('captchaInput').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+
+        errorMsg.textContent = '';
+
+        if (!sheetName) {
+          showError('Please select a class from the dropdown.');
+          return;
+        }
+        if (!rollNumber) {
+          showError('Please enter your roll number.');
+          return;
+        }
+        if (!captchaInput) {
+          showError('Please enter the verification code.');
+          return;
+        }
+        if (captchaInput !== currentCaptcha) {
+          showError('Incorrect verification code. Please try again.');
+          generateCaptcha(); // Generate a new CAPTCHA
+          return;
+        }
+
+        // If everything is fine, fetch the result from the server
+        fetchResult(sheetName, rollNumber);
+      }
+
+      function showError(message) {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> ${message}`;
+        errorMsg.classList.add('animate-bounce');
+        
+        // Remove animation class after a short delay
+        setTimeout(() => {
+          errorMsg.classList.remove('animate-bounce');
+        }, 1000);
+      }
+
+      // Call the Apps Script function and handle the result
+      function fetchResult(sheetName, rollNumber) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Loading...';
+        submitBtn.disabled = true;
+
+        const params = new URLSearchParams();
+        params.append('action', 'getStudentResult');
+        params.append('rollNo', rollNumber);
+        params.append('sheetName', sheetName);
+
+        fetch(`${SCRIPT_URL}?${params.toString()}`)
+          .then(response => response.json())
+          .then(response => {
+            submitBtn.innerHTML = '<i class="fas fa-search mr-2"></i> View Result';
+            submitBtn.disabled = false;
+            showResults(response);
+          })
+          .catch(err => {
+            showError('Error: ' + err.message);
+            submitBtn.innerHTML = '<i class="fas fa-search mr-2"></i> View Result';
+            submitBtn.disabled = false;
+          });
+      }
+      
+      function showResults(response) {
+        if (!response.success) {
+          showError(response.message || 'No result found for this roll number.');
+          return;
+        }
+        
+        // Clear any previous error messages
+        document.getElementById('errorMsg').textContent = '';
+
+        // Hide search section, show result section
+        document.getElementById('searchSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.remove('hidden');
+
+        // Fill in the fields with the returned data
+        document.getElementById('rollNoDisplay').textContent = response.rollNo;
+        document.getElementById('studentNameDisplay').textContent = response.studentName;
+        document.getElementById('motherNameDisplay').textContent = response.motherName;
+        document.getElementById('fatherNameDisplay').textContent = response.fatherName;
+        document.getElementById('regNoDisplay').textContent = response.registrationNo;
+        document.getElementById('idCardDisplay').textContent = response.idCardNo;
+        document.getElementById('aadharDisplay').textContent = response.aadhaarNo;
+
+        document.getElementById('engTheoryDisplay').textContent = response.englishTheory;
+        document.getElementById('engPracDisplay').textContent = response.englishPractical;
+        document.getElementById('engOtherDisplay').textContent = response.englishOther;
+        document.getElementById('engTotalDisplay').textContent = response.englishTotal;
+        document.getElementById('engRemarkDisplay').textContent = response.englishRemark;
+
+        document.getElementById('hinTheoryDisplay').textContent = response.hindiTheory;
+        document.getElementById('hinPracDisplay').textContent = response.hindiPractical;
+        document.getElementById('hinOtherDisplay').textContent = response.hindiOther;
+        document.getElementById('hinTotalDisplay').textContent = response.hindiTotal;
+        document.getElementById('hinRemarkDisplay').textContent = response.hindiRemark;
+
+        document.getElementById('itTheoryDisplay').textContent = response.itTheory;
+        document.getElementById('itPracDisplay').textContent = response.itPractical;
+        document.getElementById('itOtherDisplay').textContent = response.itOther;
+        document.getElementById('itTotalDisplay').textContent = response.itTotal;
+        document.getElementById('itRemarkDisplay').textContent = response.itRemark;
+
+        document.getElementById('mathTheoryDisplay').textContent = response.mathTheory;
+        document.getElementById('mathPracDisplay').textContent = response.mathPractical;
+        document.getElementById('mathOtherDisplay').textContent = response.mathOther;
+        document.getElementById('mathTotalDisplay').textContent = response.mathTotal;
+        document.getElementById('mathRemarkDisplay').textContent = response.mathRemark;
+
+        document.getElementById('sciTheoryDisplay').textContent = response.sciTheory;
+        document.getElementById('sciPracDisplay').textContent = response.sciPractical;
+        document.getElementById('sciOtherDisplay').textContent = response.sciOther;
+        document.getElementById('sciTotalDisplay').textContent = response.sciTotal;
+        document.getElementById('sciRemarkDisplay').textContent = response.sciRemark;
+
+        document.getElementById('sstTheoryDisplay').textContent = response.sstTheory;
+        document.getElementById('sstPracDisplay').textContent = response.sstPractical;
+        document.getElementById('sstOtherDisplay').textContent = response.sstOther;
+        document.getElementById('sstTotalDisplay').textContent = response.sstTotal;
+        document.getElementById('sstRemarkDisplay').textContent = response.sstRemark;
+
+        document.getElementById('grandTotalDisplay').textContent = response.grandTotal;
+        document.getElementById('resultDivisionDisplay').textContent = response.resultDivision;
+      }
+
+      // Return back to the search input
+      function backToSearch() {
+        document.getElementById('resultSection').classList.add('hidden');
+        document.getElementById('searchSection').classList.remove('hidden');
+        generateCaptcha(); // Generate a new CAPTCHA
+      }
+    </script>
+  </body>
+</html>
